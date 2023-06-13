@@ -1,12 +1,14 @@
 const File = require("../models/File");
 
+const cloudinary = require("cloudinary").v2;
+
 // it upload files on your server
 exports.localFileUpload = async (req, res) => {
   try {
     // fetch the file
     // .file = is passed in postman api in Body>form-data> file -> Value
     const file = req.files.file;
-    // console.log("file: ", file);
+    console.log("file: ", file);
 
     // where you wanna store
     // "__dirname" => "current directory (Controller)"
@@ -32,8 +34,59 @@ exports.localFileUpload = async (req, res) => {
   }
 };
 
+function isFileTypeSupported(type, supportedTypes) {
+  return supportedTypes.includes(type);
+}
+
+async function uploadFileToCloudinary(file, folder) {
+  const options = { folder };
+  return await cloudinary.uploader.upload(file.tempFilePath, options);
+}
+
 // it upload files on cloudinary server
-exports.imageUpload = async (req, res) => {};
+exports.imageUpload = async (req, res) => {
+  try {
+    // data fetch
+    const { name, tags, email } = req.body;
+
+    const file = req.files.imageFile;
+    // console.log(file);
+
+    // validation
+    const supportedTypes = ["jpg", "jpeg", "png"];
+    const fileType = file.name.split(".")[1].toLowerCase();
+
+    if (!isFileTypeSupported(fileType, supportedTypes)) {
+      return res.status(400).json({
+        success: false,
+        message: "File type is not supported",
+      });
+    }
+
+    // File format supported
+    const response = await uploadFileToCloudinary(file, "fileUpload");
+    // console.log(response);
+    // db save entry
+    const fileData = await File.create({
+      name,
+      tags,
+      email,
+      imageUrl: response.secure_url,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Image Successfully Uploaded",
+      imageUrl: response.secure_url,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
 
 // it upload files on cloudinary server
 exports.videoUpload = async (req, res) => {};

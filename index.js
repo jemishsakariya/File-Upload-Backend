@@ -9,7 +9,12 @@ app.use(express.json());
 // it is used for upload file using express-fileupload
 // it upload files on server
 const fileUpload = require("express-fileupload");
-app.use(fileUpload());
+app.use(
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: "/temp/",
+  })
+);
 
 require("./config/database").dbConnect();
 
