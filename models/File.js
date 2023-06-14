@@ -39,7 +39,7 @@ fileSchema.post("save", async function (doc) {
       // html: `<h2>Hello</h2></br><p>File Uploaded</p>`,
     });
 
-    console.log("Info: ", info);
+    // console.log("Info: ", info);
   } catch (error) {
     console.error(error);
   }
